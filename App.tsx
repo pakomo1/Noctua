@@ -4,6 +4,7 @@ import * as ort from 'onnxruntime-react-native';
 import { Asset } from 'expo-asset';
 import { Camera, CameraType } from 'expo-camera';
 import { useState, useEffect } from 'react';
+import {playSound} from './components/playAudio'
 
 let myModel: ort.InferenceSession;
 
@@ -60,6 +61,7 @@ export default function App() {
       <Text>using ONNX Runtime for React Native</Text>
       <Button title='Load model' onPress={loadModel}></Button>
       <Button title='Run' onPress={runModel}></Button>
+      <Button title='leftEarTest' onPress={()=>{playSound(-1,1)}}></Button>
       <StatusBar style="auto" />
       <Camera 
         style={{flex: 1}} 
