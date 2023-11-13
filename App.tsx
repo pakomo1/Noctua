@@ -2,10 +2,10 @@ import { StatusBar } from 'expo-status-bar';
 import { Alert, Button, StyleSheet, Text, View } from 'react-native';
 import * as ort from 'onnxruntime-react-native';
 import { Asset } from 'expo-asset';
-import { Camera, CameraType } from 'expo-camera';
 import { useState, useEffect } from 'react';
+import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
 
-let myModel: ort.InferenceSession;
+let myModel: ort.InferenceSession
 
 async function loadModel() {
 
@@ -47,12 +47,12 @@ async function runModel() {
 }
 
 export default function App() {
-  const [type, setType] = useState(CameraType.back);
-  const [permission, requestPermission] = Camera.useCameraPermissions();
+  const { hasPermission, requestPermission } = useCameraPermission()
+  const device = useCameraDevice('back')!
 
-  if (!permission || permission === null) {
+  if (hasPermission === false) {
     requestPermission()
-    return <View />;
+    return <View style={{backgroundColor: 'grey'}}></View>
   }
 
   return (
@@ -61,9 +61,10 @@ export default function App() {
       <Button title='Load model' onPress={loadModel}></Button>
       <Button title='Run' onPress={runModel}></Button>
       <StatusBar style="auto" />
-      <Camera 
-        style={{flex: 1}} 
-        type={type}
+      <Camera
+        style={StyleSheet.absoluteFill}
+        device={device}
+        isActive={true}
       />
     </View>
   );
