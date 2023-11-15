@@ -4,7 +4,6 @@ import * as ort from 'onnxruntime-react-native';
 import { Asset } from 'expo-asset';
 import { useState, useEffect } from 'react';
 import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
-import {playSound} from './components/playAudio'
 
 let myModel: ort.InferenceSession
 
@@ -48,9 +47,6 @@ async function runModel() {
 }
 
 export default function App() {
-<<<<<<< HEAD
-
-=======
   const { hasPermission, requestPermission } = useCameraPermission()
   const device = useCameraDevice('back')!
 
@@ -58,23 +54,18 @@ export default function App() {
     requestPermission()
     return <View style={{backgroundColor: 'grey'}}></View>
   }
->>>>>>> 2ed5c04485e77c2daa04d56b1b98adcd46cf4cec
 
   return (
     <View style={styles.container}>
       <Text>using ONNX Runtime for React Native</Text>
       <Button title='Load model' onPress={loadModel}></Button>
       <Button title='Run' onPress={runModel}></Button>
-      <Button title='leftEarTest' onPress={()=>{playSound(-1,1)}}></Button>
       <StatusBar style="auto" />
-<<<<<<< HEAD
-=======
       <Camera
-        style={StyleSheet.absoluteFill}
+        style={{flex:1, width: '100%'}}
         device={device}
         isActive={true}
       />
->>>>>>> 2ed5c04485e77c2daa04d56b1b98adcd46cf4cec
     </View>
   );
 }
