@@ -3,7 +3,7 @@ import { Alert, Button, StyleSheet, Text, View } from 'react-native';
 import * as ort from 'onnxruntime-react-native';
 import { Asset } from 'expo-asset';
 import { useState, useEffect } from 'react';
-import { Camera, useCameraDevice, useCameraPermission } from 'react-native-vision-camera';
+import { Camera, useCameraDevice, useCameraPermission, useFrameProcessor } from 'react-native-vision-camera';
 
 let myModel: ort.InferenceSession
 
@@ -50,9 +50,17 @@ export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission()
   const device = useCameraDevice('back')!
 
+  const frameProcessor = useFrameProcessor((frame) => {
+    'worklet'
+    if (frame.pixelFormat === 'rgb') {
+      const data = frame.toArrayBuffer()
+      console.log(`Pixel at 0,0: RGB(${data[0]}, ${data[1]}, ${data[2]})`)
+    }
+  }, [])
+
   if (hasPermission === false) {
     requestPermission()
-    return <View style={{backgroundColor: 'grey'}}></View>
+    return <View style={{ backgroundColor: 'grey' }}></View>
   }
 
   return (
@@ -62,9 +70,11 @@ export default function App() {
       <Button title='Run' onPress={runModel}></Button>
       <StatusBar style="auto" />
       <Camera
-        style={{flex:1, width: '100%'}}
+        style={{ flex: 1, width: '100%' }}
         device={device}
         isActive={true}
+        frameProcessor={frameProcessor}
+        pixelFormat='yuv'
       />
     </View>
   );
