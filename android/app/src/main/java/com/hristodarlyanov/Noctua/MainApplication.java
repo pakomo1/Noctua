@@ -1,5 +1,6 @@
 package com.hristodarlyanov.Noctua;
 
+import com.hristodarlyanov.Noctua.xyzframeprocessor.XyzFrameProcessorPluginPackage;
 import android.app.Application;
 import android.content.res.Configuration;
 import androidx.annotation.NonNull;
@@ -27,15 +28,15 @@ public class MainApplication extends Application implements ReactApplication {
         return BuildConfig.DEBUG;
       }
 
-      @Override
-      protected List<ReactPackage> getPackages() {
-        @SuppressWarnings("UnnecessaryLocalVariable")
-        List<ReactPackage> packages = new PackageList(this).getPackages();
-        // Packages that cannot be autolinked yet can be added manually here, for example:
-        // packages.add(new MyReactNativePackage());
-        return packages;
-      }
-
+// MainApplication.(java|kt)
+@Override
+protected List<ReactPackage> getPackages() {
+  @SuppressWarnings("UnnecessaryLocalVariable")
+  List<ReactPackage> packages = new PackageList(this).getPackages();
+  // ...
+  packages.add(new XyzFrameProcessorPluginPackage());
+  return packages;
+}
       @Override
       protected String getJSMainModuleName() {
         return ".expo/.virtual-metro-entry";
