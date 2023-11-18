@@ -78,7 +78,7 @@ export default function App() {
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet'
       //cFrame.value = frame.toArrayBuffer()
-      runAtTargetFps(30, () => {
+      runAtTargetFps(18, () => {
         'worklet'
         const result = xyz(frame)
 
