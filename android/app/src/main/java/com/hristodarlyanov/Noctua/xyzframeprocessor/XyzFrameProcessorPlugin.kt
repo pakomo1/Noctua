@@ -16,11 +16,17 @@ import android.os.AsyncTask
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import java.nio.ByteBuffer
+import kotlin.math.roundToInt
+import android.util.Log
+import android.graphics.ImageFormat
+import android.graphics.Rect
+import android.graphics.YuvImage
+import android.graphics.BitmapFactory
 
 class XyzFrameProcessorPlugin(options: Map<String, Any>?): FrameProcessorPlugin(options) {
   override fun callback(frame: Frame, arguments: Map<String, Any>?): Any? {
     val image = frame.getImage()
-    val byteArray = convertYuvToJpeg(image)
+    val byteArray = NV21toJPEG(YUV420toNV21(image), image.getWidth(), image.getHeight(), 100)
 
     val requestBody: RequestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
@@ -41,76 +47,73 @@ class XyzFrameProcessorPlugin(options: Map<String, Any>?): FrameProcessorPlugin(
   }
 }
 
-fun sendImage(image: Image) {
-    // Step 1: Convert Image to byte array
-    val buffer: ByteBuffer = image.planes[0].buffer
-    val bytes = ByteArray(buffer.remaining())
-    buffer.get(bytes)
-
-    // Step 2: Encode byte array to Base64
-    val base64String = Base64.encodeToString(bytes, Base64.DEFAULT)
-
-    // Log the Base64 string for debugging
-    println("Base64 String: $base64String")
-
-    // Step 3: Send HTTP POST request
-    val url = "http://192.168.1.5:5000/json"
-
-    // Build the JSON payload
-      val json = """
-        {
-            "d": "$base64String"
-        }
-    """.trimIndent()
-
-    // Define the media type for JSON
-    val mediaType = "application/json; charset=utf-8".toMediaType()
-
-    // Create the request body from JSON content
-    val requestBody = json.toRequestBody(mediaType)
-
-    // Set up OkHttpClient
-    val client = OkHttpClient()
-
-    // Build the request with headers and POST method
-    val request = Request.Builder()
-        .url(url)
-        .header("Content-Type", "application/json")
-        .post(requestBody)
-        .build()
-
-    // Execute the request
-    val response = client.newCall(request).execute()
-
-    // Handle the response as needed
-    val responseBody = response.body?.string()
-    println("Response: $responseBody")
-
-    // Close the image after processing
-    //image.close()
+private fun NV21toJPEG(nv21: ByteArray, width: Int, height: Int, quality: Int): ByteArray {
+    val out = ByteArrayOutputStream()
+    val yuv = YuvImage(nv21, ImageFormat.NV21, width, height, null)
+    yuv.compressToJpeg(Rect(0, 0, width, height), quality, out)
+    return out.toByteArray()
 }
-private fun convertYuvToJpeg(image: Image): ByteArray {
-        val yBuffer: ByteBuffer = image.planes[0].buffer
-        val uBuffer: ByteBuffer = image.planes[1].buffer
-        val vBuffer: ByteBuffer = image.planes[2].buffer
 
-        val ySize = yBuffer.remaining()
-        val uSize = uBuffer.remaining()
-        val vSize = vBuffer.remaining()
+private fun YUV420toNV21(image: Image): ByteArray {
+    val crop = image.cropRect
+    val format = image.format
+    val width = crop.width()
+    val height = crop.height()
+    val planes = image.planes
+    val data = ByteArray(width * height * ImageFormat.getBitsPerPixel(format) / 8)
+    val rowData = ByteArray(planes[0].rowStride)
 
-        val nv21 = ByteArray(ySize + uSize + vSize)
+    var channelOffset: Int
+    var outputStride: Int
+    for (i in planes.indices) {
+        when (i) {
+            0 -> {
+                channelOffset = 0
+                outputStride = 1
+            }
+            1 -> {
+                channelOffset = width * height + 1
+                outputStride = 2
+            }
+            2 -> {
+                channelOffset = width * height
+                outputStride = 2
+            }
+            else -> {
+                channelOffset = 0
+                outputStride = 1
+            }
+        }
 
-        // Copy Y-plane
-        yBuffer.get(nv21, 0, ySize)
+        val buffer: ByteBuffer = planes[i].buffer
+        val rowStride = planes[i].rowStride
+        val pixelStride = planes[i].pixelStride
 
-        // Copy U/V planes (interleaved)
-        vBuffer.get(nv21, ySize, vSize)
-        uBuffer.get(nv21, ySize + vSize, uSize)
-
-        // Convert YUV to RGB using Android's YuvImage class
-        val yuvImage = android.graphics.YuvImage(nv21, android.graphics.ImageFormat.NV21, image.width, image.height, null)
-        val stream = ByteArrayOutputStream()
-        yuvImage.compressToJpeg(android.graphics.Rect(0, 0, image.width, image.height), 80, stream)
-
-        return stream.toByteArray()
+        val shift = if (i == 0) 0 else 1
+        val w = width shr shift
+        val h = height shr shift
+        buffer.position(rowStride * (crop.top shr shift) + pixelStride * (crop.left shr shift))
+        for (row in 0 until h) {
+            val length: Int
+            length = if (pixelStride == 1 && outputStride == 1) {
+                w
+            } else {
+                (w - 1) * pixelStride + 1
+            }
+            if (pixelStride == 1 && outputStride == 1) {
+                buffer.get(data, channelOffset, length)
+                channelOffset += length
+            } else {
+                buffer.get(rowData, 0, length)
+                for (col in 0 until w) {
+                    data[channelOffset] = rowData[col * pixelStride]
+                    channelOffset += outputStride
+                }
+            }
+            if (row < h - 1) {
+                buffer.position(buffer.position() + rowStride - length)
+            }
+        }
     }
+    return data
+}

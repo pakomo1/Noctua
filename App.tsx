@@ -69,21 +69,24 @@ export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission()
   const device = useCameraDevice('back')!
   const format = useCameraFormat(device, [
-    { videoResolution: { width: 640, height: 720 } },
-    { fps: 24 }
+    { videoResolution: { width: 640, height: 480 } },
+    { fps: 24 },
+    { photoHdr: false },
+    { videoHdr: false },
+
   ])
   const debugTyped = useSharedValue(false)
   const cFrame = useSharedValue(new Uint8Array)
 
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet'
-      //cFrame.value = frame.toArrayBuffer()
-      runAtTargetFps(18, () => {
-        'worklet'
-        const result = xyz(frame)
+    //cFrame.value = frame.toArrayBuffer()
+    runAtTargetFps(18, () => {
+      'worklet'
+      const result = xyz(frame)
 
-        console.log(result)
-      })
+      console.log(result)
+    })
   }, [])
 
   if (hasPermission === false) {
