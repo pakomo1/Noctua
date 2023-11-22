@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { Camera, runAtTargetFps, useCameraDevice, useCameraFormat, useCameraPermission, useCodeScanner, useFrameProcessor } from 'react-native-vision-camera';
 import { useSharedValue } from 'react-native-worklets-core';
 import { xyz } from './XYZFrame';
+import VoiceInputScreen from './components/Voice';
 
 let myModel: ort.InferenceSession
 
@@ -106,6 +107,7 @@ export default function App() {
         pixelFormat='yuv'
         enableZoomGesture={true}
       />
+      <VoiceInputScreen/>
     </View>
   );
 }
