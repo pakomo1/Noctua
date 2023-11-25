@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Camera, runAtTargetFps, useCameraDevice, useCameraFormat, useCameraPermission, useCodeScanner, useFrameProcessor } from 'react-native-vision-camera';
 import { xyz } from './XYZFrame';
 import Voice from '@react-native-voice/voice';
+import PlaySoundComponent from './components/SoundPlayer';
 
 export default function App() {
   const [isListening, setIsListening] = useState(false);
@@ -82,6 +83,7 @@ export default function App() {
           <Text style={styles.voiceCommandsText}>Recognized Text: {recognizedText}</Text>
         </View>
       </TouchableOpacity>
+      <PlaySoundComponent/>
     </View>
   );
 }
