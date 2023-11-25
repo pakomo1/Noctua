@@ -40,10 +40,15 @@ class XyzFrameProcessorPlugin(options: Map<String, Any>?): FrameProcessorPlugin(
 
         val client = OkHttpClient()
 
-        client.newCall(request).execute()
+        val response = client.newCall(request).execute()
 
     
-    return image.getFormat()
+        if (response.isSuccessful) {
+            val responseBody = response.body?.string()
+            return responseBody
+        } else {
+            return "fail"
+        }
   }
 }
 

@@ -35,7 +35,6 @@ protected List<ReactPackage> getPackages() {
   List<ReactPackage> packages = new PackageList(this).getPackages();
   // ...
   packages.add(new XyzFrameProcessorPluginPackage());
-  package.add(new VoicePackage());
   return packages;
 }
       @Override
