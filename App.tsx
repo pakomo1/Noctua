@@ -5,7 +5,7 @@ import { Camera, runAtTargetFps, useCameraDevice, useCameraFormat, useCameraPerm
 import { useSharedValue } from 'react-native-worklets-core';
 import { xyz } from './XYZFrame';
 import VoiceInputScreen from './components/Voice';
-import PlaySoundComponent from './components/SoundPlayer';
+import {startBeeping, stopBeeping} from './components/SoundPlayer';
 
 export default function App() {
   const { hasPermission, requestPermission } = useCameraPermission()
@@ -17,16 +17,19 @@ export default function App() {
     { videoHdr: false },
 
   ])
-  const debugTyped = useSharedValue(false)
-  const cFrame = useSharedValue(new Uint8Array)
+  const debugTyped = useSharedValue(false);
+  const cFrame = useSharedValue(new Uint8Array);
 
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet'
     //cFrame.value = frame.toArrayBuffer()
     runAtTargetFps(18, () => {
       'worklet'
-      //const result = xyz(frame)
-
+      let previousResult:number = 0;
+      const result:any = xyz(frame);
+      
+      startBeeping(result, 100);      
+      
       //console.log(result)
     })
   }, [])
@@ -49,7 +52,6 @@ export default function App() {
         enableZoomGesture={true}
       />
       <VoiceInputScreen/>
-      <PlaySoundComponent/>
     </View>
   );
 }
