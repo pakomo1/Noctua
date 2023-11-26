@@ -5,6 +5,7 @@ import { Camera, runAtTargetFps, useCameraDevice, useCameraFormat, useCameraPerm
 import { xyz } from './XYZFrame';
 import Voice from '@react-native-voice/voice';
 import {startBeeping, stopBeeping} from './components/SoundPlayer';
+import { useSharedValue } from 'react-native-worklets-core';
 
 export default function App() {
   const [isListening, setIsListening] = useState(false);
@@ -39,6 +40,7 @@ export default function App() {
     }
   };
   const { hasPermission, requestPermission } = useCameraPermission()
+  const [someValues, setSomeValues] = useState('0.12323123')
   const device = useCameraDevice('back')!
   const format = useCameraFormat(device, [
     { videoResolution: { width: 640, height: 480 } },
@@ -47,25 +49,31 @@ export default function App() {
     { videoHdr: false },
   ])
 
+  const onFaceDetected = Worklets.createRunInJsFn((frameResult: string) => {
+    if (frameResult != 'fail') {
+      setSomeValues(frameResult)
+    }
+    startBeeping(parseFloat(frameResult), 100)
+  })
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet'
     runAtTargetFps(18, () => {
       'worklet'
       let previousResult:number = 0;
       const result:any = xyz(frame);
-      
-      startBeeping(result, 100);      
+      onFaceDetected(result)
+      //console.log(frameResult.value)
+      //startBeeping(result, 100);      
       
       //console.log(result)
     })
-  }, [])
+  }, [onFaceDetected])
 
   if (hasPermission === false) {
     requestPermission()
     return <View style={{ backgroundColor: 'grey' }}></View>
   }
 
-  const someValues = "0.124215531";
   return (
     <View style={styles.container}>
       <StatusBar style="auto" />
