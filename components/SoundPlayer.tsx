@@ -44,8 +44,10 @@ export function startBeeping(pan: number, volume: number) {
           console.log('Failed to load the sound', error);
           return;
         }
-                // Set pan and volume
-        ding.setPan(pan);
+        const mappedPan:number = mapValue(pan, 0, 1, -1, 1)
+
+        // Set pan and volume
+        ding.setPan(mappedPan);
         ding.setVolume(volume);
 
         // Play the sound
@@ -81,6 +83,18 @@ function calculateInterval(pan: number): number {
   const modulationFactor = 1 + Math.abs(pan);
   return Math.round(baseInterval / modulationFactor);
 }
+
+function mapValue(input: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
+    // Ensure the input is within the given range
+    input = Math.min(Math.max(input, inMin), inMax);
+
+    // Map the input to the output range
+    const inputRange = inMax - inMin;
+    const outputRange = outMax - outMin;
+
+    return ((input - inMin) / inputRange) * outputRange + outMin;
+}
+
 
 
 

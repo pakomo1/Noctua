@@ -3,13 +3,14 @@ import { Alert, Button, StyleSheet, Text, View, TouchableOpacity, Image } from '
 import { useState, useEffect } from 'react';
 import { Camera, runAtTargetFps, useCameraDevice, useCameraFormat, useCameraPermission, useCodeScanner, useFrameProcessor } from 'react-native-vision-camera';
 import { xyz } from './XYZFrame';
-import Voice from '@react-native-voice/voice';
+import Voice from '@react-native-voice/voice'
 import {startBeeping, stopBeeping} from './components/SoundPlayer';
 import { useSharedValue } from 'react-native-worklets-core';
 
 export default function App() {
   const [isListening, setIsListening] = useState(false);
   const [recognizedText, setRecognizedText] = useState('');
+  const [previousFrameResult, setPreviousFrameResult] = useState('');
 
   useEffect(() => {
     Voice.onSpeechResults = (results: any) => {
@@ -24,7 +25,6 @@ export default function App() {
   const startListening = async () => {
     try {
       await Voice.start('en-US');
-      console.log('we are here now');
       setIsListening(true);
     } catch (error) {
       console.error(error);
@@ -50,10 +50,11 @@ export default function App() {
   ])
 
   const onFaceDetected = Worklets.createRunInJsFn((frameResult: string) => {
-    if (frameResult != 'fail') {
-      setSomeValues(frameResult)
+    if (frameResult != 'fail'&& frameResult != previousFrameResult) {
+      setSomeValues(frameResult);
+      startBeeping(parseFloat(frameResult), 100)
+      setPreviousFrameResult(frameResult);
     }
-    startBeeping(parseFloat(frameResult), 100)
   })
   const frameProcessor = useFrameProcessor((frame) => {
     'worklet'
