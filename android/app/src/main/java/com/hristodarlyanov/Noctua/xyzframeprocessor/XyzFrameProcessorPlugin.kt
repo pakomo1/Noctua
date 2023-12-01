@@ -34,7 +34,7 @@ class XyzFrameProcessorPlugin(options: Map<String, Any>?): FrameProcessorPlugin(
             .build()
 
         val request: Request = Request.Builder()
-            .url("http://192.168.1.5:5000/json")
+            .url("http://192.168.98.4:5000/json")
             .post(requestBody)
             .build()
 

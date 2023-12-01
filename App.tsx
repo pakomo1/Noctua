@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { Camera, runAtTargetFps, useCameraDevice, useCameraFormat, useCameraPermission, useCodeScanner, useFrameProcessor } from 'react-native-vision-camera';
 import { xyz } from './XYZFrame';
 import Voice from '@react-native-voice/voice'
-import {startBeeping, stopBeeping} from './components/SoundPlayer';
+import {startBeeping, stopBeeping, playSound} from './components/SoundPlayer';
 import { useSharedValue } from 'react-native-worklets-core';
+import { executeCommand,getHasStartedCommand } from './components/VoiceCommand';
 
 export default function App() {
   const [isListening, setIsListening] = useState(false);
@@ -15,8 +16,10 @@ export default function App() {
   useEffect(() => {
     Voice.onSpeechResults = (results: any) => {
       setRecognizedText(results.value);
+      executeCommand(results.value);
+      stopListening();
     };
-
+    playSound('welcome.mp3');
     return () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
@@ -60,13 +63,16 @@ export default function App() {
     'worklet'
     runAtTargetFps(18, () => {
       'worklet'
-      let previousResult:number = 0;
-      const result:any = xyz(frame);
-      onFaceDetected(result)
-      //console.log(frameResult.value)
-      //startBeeping(result, 100);      
-      
-      //console.log(result)
+      //console.log(getHasStartedCommand())
+      if(getHasStartedCommand()){
+        let previousResult:number = 0;
+        const result:any = xyz(frame);
+        onFaceDetected(result)
+        //console.log(frameResult.value)
+        //startBeeping(result, 100);      
+        
+        //console.log(result)
+      }
     })
   }, [onFaceDetected])
 

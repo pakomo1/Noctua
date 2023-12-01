@@ -8,12 +8,12 @@ const PlaySoundComponent = ()=>{
   
     return(
         <View>
-            <Button title="Play sound from left ear" onPress={()=>{playSound(-1)}}/>
+            <Button title="Play sound from left ear" onPress={()=>{playSoundForEar(-1)}}/>
         </View>
     )
 }
     
-export function playSound(pan:number){
+export function playSoundForEar(pan:number){
     var ding = new Sound('sound.mp3', Sound.MAIN_BUNDLE, (error) => {
     if (error) {
       console.log('failed to load the sound', error);
@@ -27,6 +27,16 @@ export function playSound(pan:number){
         }
     });
     console.log('duration in seconds: ' + ding.getDuration() + 'number of channels: ' +ding.getNumberOfChannels());
+});   
+}
+export function playSound(filename:string){
+    var sound = new Sound(filename, Sound.MAIN_BUNDLE, (error) => {
+    if (error) {
+      console.log('failed to load the sound', error);
+      return;
+    }
+    sound.setVolume(10)
+    sound.play();
 });   
 }
 
